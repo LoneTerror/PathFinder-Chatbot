@@ -93,8 +93,12 @@ GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
 ```
 (You can get an `API Key` from Google AI studio)
 
+
+
 - The port the server will run on (optional, defaults to 3000)
-```PORT=3000```
+```
+PORT=3000
+```
 
 # 4. Usage
 To run the server locally for development, use the following command:
