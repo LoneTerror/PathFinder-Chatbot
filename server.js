@@ -111,5 +111,5 @@ app.post('/chat', async (req, res) => {
 
 // --- RUN THE SERVER ---
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT} 🚀`);
+    console.log(`Server is running on https://revvote.site on PORT=${PORT} 🚀`);
 });
