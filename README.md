@@ -71,7 +71,7 @@ Clone the repository:
 Bash
 ```
 git clone https://github.com/LoneTerror/PathFinder-Chatbot.git
-cd PathFinder-Chatbot.git
+cd PathFinder-Chatbot
 ```
 
 # 2. Install NPM packages:
