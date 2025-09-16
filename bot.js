@@ -78,6 +78,45 @@ async function detectLanguage(text) {
     }
 }
 
+async function sendLongMessage(channel, text) {
+    const MAX_LENGTH = 2000; // Discord's standard max length
+
+    if (text.length <= MAX_LENGTH) {
+        await channel.send(text);
+        return;
+    }
+
+    const chunks = [];
+    let currentChunk = "";
+
+    // Split by lines first to preserve formatting
+    const lines = text.split('\n');
+    for (const line of lines) {
+        if (currentChunk.length + line.length + 1 > MAX_LENGTH) {
+            chunks.push(currentChunk);
+            currentChunk = "";
+        }
+        // If a single line is too long, split it hard
+        if (line.length > MAX_LENGTH) {
+            for (let i = 0; i < line.length; i += MAX_LENGTH) {
+                chunks.push(line.substring(i, i + MAX_LENGTH));
+            }
+        } else {
+            currentChunk += line + '\n';
+        }
+    }
+    // Add the last remaining chunk
+    if (currentChunk) {
+        chunks.push(currentChunk);
+    }
+
+    // Send each chunk as a separate message
+    for (const chunk of chunks) {
+        await channel.send(chunk);
+    }
+}
+
+
 // --- DISCORD BOT EVENTS ---
 discordClient.once('clientReady', () => {
     console.log(`Logged in as ${discordClient.user.tag}`);
@@ -133,7 +172,7 @@ discordClient.on('messageCreate', async (message) => {
         const result = await chat.sendMessage(userMessageContent);
         const botResponse = await result.response.text();
 
-        await message.channel.send({ content: botResponse, split: true });
+        await sendLongMessage(message.channel, botResponse);
 
     } catch (e) {
         console.error(`An error occurred in on_message: ${e}`);
