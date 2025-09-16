@@ -1,4 +1,4 @@
-// index.js
+// bot.js
 
 const { Client, GatewayIntentBits } = require('discord.js');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -79,7 +79,7 @@ async function detectLanguage(text) {
 }
 
 // --- DISCORD BOT EVENTS ---
-discordClient.once('ready', () => {
+discordClient.once('clientReady', () => {
     console.log(`Logged in as ${discordClient.user.tag}`);
     console.log('PathFinderBot is ready to help! 🤖');
     console.log('------');
@@ -133,7 +133,7 @@ discordClient.on('messageCreate', async (message) => {
         const result = await chat.sendMessage(userMessageContent);
         const botResponse = await result.response.text();
 
-        await message.channel.send(botResponse);
+        await message.channel.send({ content: botResponse, split: true });
 
     } catch (e) {
         console.error(`An error occurred in on_message: ${e}`);
