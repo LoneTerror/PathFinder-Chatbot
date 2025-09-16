@@ -97,8 +97,9 @@ Code snippet ```.env``` file,
 To run the server locally for development, use the following command:
 
 Bash
-
 ```npm start-server```
+
+
 The server will start and listen on the `port` defined in your `.env` file (or port 3000 by default). 
 
 You'll see a confirmation message in your console:
