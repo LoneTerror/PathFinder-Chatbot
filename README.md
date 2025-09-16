@@ -60,9 +60,11 @@ Prerequisites
 `npm` or `yarn`
 - For this project we're going to be using `npm`
 
-- A Google Gemini `API Key` from Google AI Studio: [https://aistudio.google.com/apikey]
+- A Google Gemini `API Key` from Google AI Studio: https://aistudio.google.com/apikey
 
-1. Installation
+
+
+# 1. Installation
    
 Clone the repository:
 
@@ -72,26 +74,26 @@ git clone https://github.com/LoneTerror/PathFinder-Chatbot.git
 cd PathFinder-Chatbot.git
 ```
 
-2. Install NPM packages:
+# 2. Install NPM packages:
 
 Bash
 ```
 npm install
 ```
 
-3. Create an environment file:
+# 3. Create an environment file:
    
 Create a .env file in the root of the project and add your environment variables.
 
 Code snippet ```.env``` file,
 
-# Your Google Gemini API Key
+- Your Google Gemini API Key
 ```GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"``` - You can get an `API Key` from Google AI studio
 
-# The port the server will run on (optional, defaults to 3000)
+- The port the server will run on (optional, defaults to 3000)
 ```PORT=3000```
 
-4. Usage
+# 4. Usage
 To run the server locally for development, use the following command:
 
 Bash
