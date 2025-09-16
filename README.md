@@ -88,7 +88,10 @@ Create a .env file in the root of the project and add your environment variables
 Code snippet ```.env``` file,
 
 - Your Google Gemini API Key
-```GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"``` - You can get an `API Key` from Google AI studio
+```
+GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
+```
+(You can get an `API Key` from Google AI studio)
 
 - The port the server will run on (optional, defaults to 3000)
 ```PORT=3000```
@@ -97,7 +100,9 @@ Code snippet ```.env``` file,
 To run the server locally for development, use the following command:
 
 Bash
-```npm start-server```
+```
+npm start-server
+```
 
 
 The server will start and listen on the `port` defined in your `.env` file (or port 3000 by default). 
