@@ -10,7 +10,7 @@ require("dotenv").config();
 // --- CONFIGURATION ---
 const MAIN_BACKEND_URL = 'https://backend.revvote.site/graphql';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5006;
 
 // --- INITIALIZATION ---
 if (!GEMINI_API_KEY) {
@@ -69,7 +69,7 @@ async function detectLanguage(text) {
 }
 
 // --- API ENDPOINT (UPDATED) ---
-app.post("/chat", async (req, res) => {
+app.post("/", async (req, res) => {
   try {
     const { userId, prompt } = req.body;
 
