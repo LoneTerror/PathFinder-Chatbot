@@ -1,4 +1,5 @@
 // server.js
+const fetch = require('node-fetch');
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -6,6 +7,7 @@ const { PrismaClient } = require("@prisma/client"); // Require Prisma Client
 require("dotenv").config();
 
 // --- CONFIGURATION ---
+const MAIN_BACKEND_URL = 'https://backend.revvote.site/graphql';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const PORT = process.env.PORT || 3000;
 
@@ -116,5 +118,5 @@ app.post("/chat", async (req, res) => {
 
 // --- RUN THE SERVER ---
 app.listen(PORT, () => {
-  console.log(`Server is running on https://revvote.site on PORT=${PORT} 🚀`);
+  console.log(`Server is running on https://chatbot.revvote.site on PORT=${PORT} 🚀`);
 });
