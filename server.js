@@ -3,7 +3,8 @@ const fetch = require('node-fetch');
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { PrismaClient } = require("@prisma/client"); // Require Prisma Client
+// REMOVED: const { PrismaClient } = require("@prisma/client"); 
+// REMOVED: require("dotenv").config(); - Your current setup handles this
 require("dotenv").config();
 
 // --- CONFIGURATION ---
@@ -13,12 +14,12 @@ const PORT = process.env.PORT || 3000;
 
 // --- INITIALIZATION ---
 if (!GEMINI_API_KEY) {
-  console.error("Error: Gemini API key not found in environment variables.");
-  process.exit(1);
+  console.error("Error: Gemini API key not found in environment variables.");
+  process.exit(1);
 }
 const app = express();
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const prisma = new PrismaClient(); // Initialize Prisma Client
+// REMOVED: const prisma = new PrismaClient(); 
 
 // --- MIDDLEWARE ---
 app.use(cors());
@@ -31,8 +32,8 @@ const HINGLISH_SYSTEM_PROMPT = `Aap PathFinderBot hain, ek bohot helpful aur exp
 
 // NEW: Language detection helper function
 async function detectLanguage(text) {
-  try {
-    const detectionPrompt = `
+  try {
+    const detectionPrompt = `
         You are an expert language identifier. Given the following text, identify if it's primarily English or Hinglish.
         Respond with only a single word: 'English' or 'Hinglish'.
 
@@ -52,71 +53,108 @@ async function detectLanguage(text) {
         Text: "${text}"
         Language:
         `;
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
-    });
-    const result = await model.generateContent(detectionPrompt);
-    const response = await result.response;
-    const language = response.text().trim().toLowerCase();
-    console.log(`Detected language: ${language}`);
-    if (language.includes("hinglish")) {
-      return "hinglish";
-    }
-    return "english";
-  } catch (e) {
-    console.error(`Language detection failed: ${e}`);
-    return "english"; // Default to English on any failure
-  }
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const result = await model.generateContent(detectionPrompt);
+    const response = await result.response;
+    const language = response.text().trim().toLowerCase();
+    console.log(`Detected language: ${language}`);
+    if (language.includes("hinglish")) {
+      return "hinglish";
+    }
+    return "english";
+  } catch (e) {
+    console.error(`Language detection failed: ${e}`);
+    return "english"; // Default to English on any failure
+  }
 }
 
 // --- API ENDPOINT (UPDATED) ---
 app.post("/chat", async (req, res) => {
-  try {
-    const { userId, prompt } = req.body; // Expect userId from the client
+  try {
+    const { userId, prompt } = req.body;
 
-    if (!userId || !prompt) {
-      return res.status(400).json({ error: "userId and prompt are required" });
-    } // 1. Fetch conversation history from the database using Prisma
-    const history = await prisma.chatMessage.findMany({
-      where: { userId: userId },
-      orderBy: { timestamp: "asc" },
+    if (!userId || !prompt) {
+      return res.status(400).json({ error: "userId and prompt are required" });
+    }
+    
+    // 1. Make a GraphQL query to the main backend to get chat history
+    const historyQuery = `
+      query ChatMessages($userId: ID!) {
+        chatMessages(userId: $userId) {
+          sender
+          text
+        }
+      }
+    `;
+
+    const historyResponse = await fetch(MAIN_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: historyQuery,
+        variables: { userId },
+      }),
     });
+    const historyData = await historyResponse.json();
+    const history = historyData.data.chatMessages || [];
     const geminiHistory = history.map((msg) => ({
-      role: msg.sender === "user" ? "user" : "model",
+      role: msg.sender,
       parts: [{ text: msg.text }],
-    })); // 2. Detect the language from the user's prompt
+    }));
 
-    const language = await detectLanguage(prompt); // 3. Select the appropriate system prompt
+    // 2. Detect the language from the user's prompt
+    const language = await detectLanguage(prompt);
 
-    const activeSystemPrompt =
-      language === "hinglish" ? HINGLISH_SYSTEM_PROMPT : ENGLISH_SYSTEM_PROMPT; // 4. Initialize the main model with the selected prompt
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
-      systemInstruction: activeSystemPrompt,
-    }); // Start chat with the provided history
+    // 3. Select the appropriate system prompt
+    const activeSystemPrompt =
+      language === "hinglish" ? HINGLISH_SYSTEM_PROMPT : ENGLISH_SYSTEM_PROMPT;
+    
+    // 4. Initialize the main model with the selected prompt and history
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+      systemInstruction: activeSystemPrompt,
+    });
 
-    const chat = model.startChat({
-      history: geminiHistory,
+    const chat = model.startChat({ history: geminiHistory });
+
+    const result = await chat.sendMessage(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // 5. Make a GraphQL mutation to the main backend to save the new messages
+    const saveMessagesMutation = `
+      mutation SaveChatMessages($userId: ID!, $messages: [ChatMessageInput!]!) {
+        saveChatMessages(userId: $userId, messages: $messages) {
+          id
+        }
+      }
+    `;
+
+    const mutationResponse = await fetch(MAIN_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: saveMessagesMutation,
+        variables: {
+          userId,
+          messages: [
+            { sender: 'user', text: prompt },
+            { sender: 'model', text: text },
+          ],
+        },
+      }),
     });
+    const mutationData = await mutationResponse.json();
+    console.log('Messages saved:', mutationData);
 
-    const result = await chat.sendMessage(prompt);
-    const response = await result.response;
-    const text = response.text(); // 5. Save the user's message and the bot's response to the database
-    await prisma.chatMessage.createMany({
-      data: [
-        { userId: userId, sender: "user", text: prompt },
-        { userId: userId, sender: "model", text: text },
-      ],
-    });
-
-    res.json({ response: text });
-  } catch (error) {
-    console.error("Error in /chat endpoint:", error);
-    res.status(500).json({ error: "Failed to get response from AI" });
-  }
+    res.json({ response: text });
+  } catch (error) {
+    console.error("Error in /chat endpoint:", error);
+    res.status(500).json({ error: "Failed to get response from AI" });
+  }
 });
 
 // --- RUN THE SERVER ---
 app.listen(PORT, () => {
-  console.log(`Server is running on https://chatbot.revvote.site on PORT=${PORT} 🚀`);
+  console.log(`Server is running on https://chatbot.revvote.site on PORT=${PORT} 🚀`);
 });

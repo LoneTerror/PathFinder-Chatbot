@@ -15,7 +15,6 @@
   "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "@prisma/client": "^6.16.2",
     "cors": "^2.8.5",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.2",
