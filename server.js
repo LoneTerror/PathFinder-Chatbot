@@ -93,6 +93,13 @@ app.post("/chat", async (req, res) => {
       }),
     });
     const historyData = await historyResponse.json();
+
+    // *** NEW ERROR HANDLING ***
+    if (historyData.errors) {
+        console.error('GraphQL History Query Failed:', JSON.stringify(historyData.errors, null, 2));
+        return res.status(500).json({ error: 'Failed to fetch chat history from main backend.' });
+    }
+
     const history = historyData.data.chatMessages || [];
     const geminiHistory = history.map((msg) => ({
       role: msg.sender,
