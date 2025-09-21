@@ -3,8 +3,6 @@ const fetch = require('node-fetch');
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-// REMOVED: const { PrismaClient } = require("@prisma/client"); 
-// REMOVED: require("dotenv").config(); - Your current setup handles this
 require("dotenv").config();
 
 // --- CONFIGURATION ---
@@ -19,7 +17,6 @@ if (!GEMINI_API_KEY) {
 }
 const app = express();
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// REMOVED: const prisma = new PrismaClient(); 
 
 // --- MIDDLEWARE ---
 app.use(cors());
@@ -76,31 +73,31 @@ app.post("/chat", async (req, res) => {
     if (!userId || !prompt) {
       return res.status(400).json({ error: "userId and prompt are required" });
     }
-    
-    // 1. Make a GraphQL query to the main backend to get chat history
-    const historyQuery = `
-      query ChatMessages($userId: ID!) {
-        chatMessages(userId: $userId) {
-          sender
-          text
-        }
-      }
-    `;
+    
+    // 1. Make a GraphQL query to the main backend to get chat history
+    const historyQuery = `
+      query ChatMessages($userId: ID!) {
+        chatMessages(userId: $userId) {
+          sender
+          text
+        }
+      }
+    `;
 
-    const historyResponse = await fetch(MAIN_BACKEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: historyQuery,
-        variables: { userId },
-      }),
-    });
-    const historyData = await historyResponse.json();
-    const history = historyData.data.chatMessages || [];
-    const geminiHistory = history.map((msg) => ({
-      role: msg.sender,
-      parts: [{ text: msg.text }],
-    }));
+    const historyResponse = await fetch(MAIN_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: historyQuery,
+        variables: { userId },
+      }),
+    });
+    const historyData = await historyResponse.json();
+    const history = historyData.data.chatMessages || [];
+    const geminiHistory = history.map((msg) => ({
+      role: msg.sender,
+      parts: [{ text: msg.text }],
+    }));
 
     // 2. Detect the language from the user's prompt
     const language = await detectLanguage(prompt);
@@ -108,7 +105,7 @@ app.post("/chat", async (req, res) => {
     // 3. Select the appropriate system prompt
     const activeSystemPrompt =
       language === "hinglish" ? HINGLISH_SYSTEM_PROMPT : ENGLISH_SYSTEM_PROMPT;
-    
+    
     // 4. Initialize the main model with the selected prompt and history
     const model = genAI.getGenerativeModel({
       model: "gemini-1.5-flash-latest",
@@ -122,30 +119,28 @@ app.post("/chat", async (req, res) => {
     const text = response.text();
 
     // 5. Make a GraphQL mutation to the main backend to save the new messages
-    const saveMessagesMutation = `
-      mutation SaveChatMessages($userId: ID!, $messages: [ChatMessageInput!]!) {
-        saveChatMessages(userId: $userId, messages: $messages) {
-          id
-        }
-      }
-    `;
+    const saveMessagesMutation = `
+      mutation SaveChatMessages($userId: ID!, $messages: [ChatMessageInput!]!) {
+        saveChatMessages(userId: $userId, messages: $messages)
+      }
+    `;
 
-    const mutationResponse = await fetch(MAIN_BACKEND_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: saveMessagesMutation,
-        variables: {
-          userId,
-          messages: [
-            { sender: 'user', text: prompt },
-            { sender: 'model', text: text },
-          ],
-        },
-      }),
-    });
-    const mutationData = await mutationResponse.json();
-    console.log('Messages saved:', mutationData);
+    const mutationResponse = await fetch(MAIN_BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: saveMessagesMutation,
+        variables: {
+          userId,
+          messages: [
+            { sender: 'user', text: prompt },
+            { sender: 'model', text: text },
+          ],
+        },
+      }),
+    });
+    const mutationData = await mutationResponse.json();
+    console.log('Messages saved:', mutationData);
 
     res.json({ response: text });
   } catch (error) {
