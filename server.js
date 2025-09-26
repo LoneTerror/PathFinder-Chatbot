@@ -51,7 +51,7 @@ async function detectLanguage(text) {
  Language:
  `;
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-2.5-flash",
     });
     const result = await model.generateContent(detectionPrompt);
     const response = await result.response;
@@ -116,7 +116,7 @@ app.post("/chat", async (req, res) => {
     const activeSystemPrompt =
       language === "hinglish" ? HINGLISH_SYSTEM_PROMPT : ENGLISH_SYSTEM_PROMPT; // 4. Initialize the main model with the selected prompt and history
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-2.5-flash",
       systemInstruction: activeSystemPrompt,
     });
 
@@ -127,7 +127,7 @@ app.post("/chat", async (req, res) => {
     const text = response.text(); // 5. Make a GraphQL mutation to the main backend to save the new messages
 
     const saveMessagesMutation = `
- mutation SaveChatMessages($userId: ID!, $messages: [ChatMessageInput!]!) {
+mutation SaveChatMessages($userId: ID!, $messages: [ChatMessageInput!]!) {
   saveChatMessages(userId: $userId, messages: $messages)
  }
 `;
