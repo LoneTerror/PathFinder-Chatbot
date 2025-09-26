@@ -5,7 +5,7 @@ A simple, stateless, and scalable Node.js Express server that acts as a backend 
 ## Features ✨
 
 * **Simple & Lightweight:** Built with Express.js for minimal overhead.
-* **Gemini API Integration:** Connects to Google's `gemini-1.5-flash-latest` model to provide fast and intelligent responses.
+* **Gemini API Integration:** Connects to Google's `gemini-2.5-flash` model to provide fast and intelligent responses.
 * **Stateful API:** A `/chat` endpoint that processes a prompt from the user, forwarding their unique id and prompt message, hence, storing it in database, context saving.
 * **Secure:** Keeps your Google Gemini API key safe on the server, never exposing it to the client application.
 * **Environment-Ready:** Uses a `.env` file for easy configuration of API keys and server ports.
