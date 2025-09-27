@@ -51,7 +51,7 @@ async function detectLanguage(text) {
  Language:
  `;
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
     });
     const result = await model.generateContent(detectionPrompt);
     const response = await result.response;
@@ -116,7 +116,7 @@ app.post("/chat", async (req, res) => {
     const activeSystemPrompt =
       language === "hinglish" ? HINGLISH_SYSTEM_PROMPT : ENGLISH_SYSTEM_PROMPT; // 4. Initialize the main model with the selected prompt and history
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       systemInstruction: activeSystemPrompt,
     });
 
