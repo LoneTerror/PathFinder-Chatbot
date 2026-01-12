@@ -65,7 +65,7 @@ async function detectLanguage(text) {
 
         Text: "${text}"
         `;
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
         const result = await model.generateContent(detectionPrompt);
         const response = await result.response;
         const language = response.text().trim().toLowerCase();
@@ -161,7 +161,7 @@ discordClient.on('messageCreate', async (message) => {
         if (!conversationHistory[userId] || conversationHistory[userId].persona !== personaName) {
             console.log(`Starting new '${personaName}' chat session for user ${userId}`);
             const model = genAI.getGenerativeModel({
-                model: "gemini-2.5-flash-lite",
+                model: "gemini-3-flash-preview",
                 systemInstruction: activeSystemPrompt,
             });
             const chatSession = model.startChat({ history: [] });
